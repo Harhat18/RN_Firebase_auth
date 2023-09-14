@@ -6,12 +6,43 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { auth } from "../firebase";
+import { useNavigation } from "@react-navigation/native";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigation.navigate("Home");
+      }
+    });
+    return () => {};
+  }, []);
+
+  const handleSignup = () => {
+    auth
+      .createUserWithEmailAndPassword(email, password)
+      .then((userCredentials) => {
+        const user = userCredentials.user;
+        console.log("kullanıcı", user.email);
+      })
+      .catch((error) => alert(error.message));
+  };
+  const handleLogin = () => {
+    auth
+      .signInWithEmailAndPassword(email, password)
+      .then((userCredentials) => {
+        const user = userCredentials.user;
+        console.log("kullanıcı giriş yaptı", user.email);
+      })
+      .catch((error) => alert(error.message));
+  };
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.inputContainer}>
@@ -30,10 +61,13 @@ export default function LoginScreen() {
         />
       </View>
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.button}>
+        <Pressable style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>GİRİŞ YAP</Text>
         </Pressable>
-        <Pressable style={[styles.button, styles.outLineButton]}>
+        <Pressable
+          style={[styles.button, styles.outLineButton]}
+          onPress={handleSignup}
+        >
           <Text style={styles.outLineButtonText}>KAYIT OL</Text>
         </Pressable>
       </View>
